@@ -12,7 +12,7 @@ import {
   DeleteOutline, EditOutlined, SearchOutlined,
   NavigateNext, HistoryToggleOffOutlined, CheckCircleOutline, 
   WarningAmberRounded, VisibilityOutlined, FlightTakeoffOutlined, 
-  DirectionsBoatOutlined, PersonOutline, QrCode2Outlined,
+  DirectionsBoatOutlined, QrCode2Outlined,
   ArrowForwardIosOutlined
 } from "@mui/icons-material";
 

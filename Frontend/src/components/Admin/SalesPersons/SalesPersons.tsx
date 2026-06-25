@@ -25,7 +25,6 @@ import CreateSalesPersonForm from "./CreateSalesPerson";
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001";
 const CACHE_KEY = "SALES_PERSON_VAULT";
 const PRIMARY_TEAL = "#004652";
-const ACCENT_GOLD = "#CC9D2F";
 
 // Premium Theme configuration
 const montserratTheme = createTheme({

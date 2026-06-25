@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Box, Container, Typography, Grid } from "@mui/material";
-import { useLang } from "../context/LanguageContext";
 
 const BLUE = "#0B5FFF";
 
 const stats = [
-  { value: 15, suffix: "+", labelKey: "yearsExp" as const, descKey: "yearsExpDesc" as const },
-  { value: 12000, suffix: "+", labelKey: "shipped" as const, descKey: "shippedDesc" as const },
-  { value: 12, suffix: "", labelKey: "countries" as const, descKey: "countriesDesc" as const },
-  { value: 99, suffix: "%", labelKey: "onTime" as const, descKey: "onTimeDesc" as const },
+  { value: 15, suffix: "+", label: "Years Experience", desc: "Trusted logistics" },
+  { value: 12000, suffix: "+", label: "Packages Shipped", desc: "Safely delivered" },
+  { value: 12, suffix: "", label: "Countries Served", desc: "Global reach" },
+  { value: 99, suffix: "%", label: "On-Time Delivery", desc: "Consistent reliability" },
 ];
 
 function useCountUp(target: number, duration: number, start: boolean) {
@@ -27,15 +26,24 @@ function useCountUp(target: number, duration: number, start: boolean) {
   return count;
 }
 
-function StatCard({ value, suffix, labelKey, descKey, delay }: { value: number; suffix: string; labelKey: keyof ReturnType<typeof import("../context/LanguageContext").useLang>["t"]; descKey: keyof ReturnType<typeof import("../context/LanguageContext").useLang>["t"]; delay: number }) {
-  const { t, isRTL } = useLang();
-  const font = isRTL ? '"Cairo", "Montserrat", sans-serif' : "'Montserrat', sans-serif";
+interface StatCardProps {
+  value: number;
+  suffix: string;
+  label: string;
+  desc: string;
+  delay: number;
+}
+
+function StatCard({ value, suffix, label, desc, delay }: StatCardProps) {
+  const font = "'Montserrat', sans-serif";
   const [visible, setVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const count = useCountUp(value, 1800, visible);
 
   useEffect(() => {
-    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) setVisible(true); }, { threshold: 0.3 });
+    const obs = new IntersectionObserver(([entry]) => { 
+      if (entry.isIntersecting) setVisible(true); 
+    }, { threshold: 0.3 });
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
   }, []);
@@ -49,29 +57,34 @@ function StatCard({ value, suffix, labelKey, descKey, delay }: { value: number; 
       <Typography sx={{ fontFamily: font, fontWeight: 900, fontSize: { xs: "2.5rem", md: "3.2rem" }, color: BLUE, lineHeight: 1, letterSpacing: "-0.03em" }}>
         {count.toLocaleString()}{suffix}
       </Typography>
-      <Typography sx={{ fontFamily: font, fontWeight: 800, fontSize: "1rem", color: "#fff", mt: 1 }}>{t[labelKey] as string}</Typography>
-      <Typography sx={{ fontFamily: font, fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", mt: 0.5 }}>{t[descKey] as string}</Typography>
+      <Typography sx={{ fontFamily: font, fontWeight: 800, fontSize: "1rem", color: "#fff", mt: 1 }}>
+        {label}
+      </Typography>
+      <Typography sx={{ fontFamily: font, fontSize: "0.8rem", color: "rgba(255,255,255,0.5)", mt: 0.5 }}>
+        {desc}
+      </Typography>
     </Box>
   );
 }
 
 export default function StatsSection() {
-  const { t, isRTL } = useLang();
-  const font = isRTL ? '"Cairo", "Montserrat", sans-serif' : "'Montserrat', sans-serif";
+  const font = "'Montserrat', sans-serif";
 
   return (
-    <Box sx={{ background: "linear-gradient(135deg, #0F172A 0%, #1a2744 100%)", py: { xs: 8, md: 10 }, position: "relative", overflow: "hidden", direction: isRTL ? "rtl" : "ltr" }}>
+    <Box sx={{ background: "linear-gradient(135deg, #0F172A 0%, #1a2744 100%)", py: { xs: 8, md: 10 }, position: "relative", overflow: "hidden" }}>
       <Box sx={{ position: "absolute", width: 400, height: 400, borderRadius: "50%", bgcolor: "rgba(11,95,255,0.08)", top: -100, right: -100, pointerEvents: "none" }} />
       <Box sx={{ position: "absolute", width: 300, height: 300, borderRadius: "50%", bgcolor: "rgba(11,95,255,0.06)", bottom: -80, left: -80, pointerEvents: "none" }} />
+      
       <Container maxWidth="lg" sx={{ position: "relative", zIndex: 1 }}>
         <Box sx={{ textAlign: "center", mb: { xs: 5, md: 7 } }}>
-          <Typography sx={{ fontFamily: font, fontWeight: 800, fontSize: "0.7rem", color: BLUE, letterSpacing: isRTL ? 0 : 3, textTransform: "uppercase", mb: 1.5 }}>
-            {t.byNumbers}
+          <Typography sx={{ fontFamily: font, fontWeight: 800, fontSize: "0.7rem", color: BLUE, letterSpacing: 3, textTransform: "uppercase", mb: 1.5 }}>
+            By The Numbers
           </Typography>
           <Typography variant="h3" sx={{ fontFamily: font, fontWeight: 900, color: "#fff", fontSize: { xs: "1.8rem", md: "2.4rem" }, letterSpacing: "-0.03em" }}>
-            {t.provenTrack}
+            Our Proven Track Record
           </Typography>
         </Box>
+        
         <Grid container>
           {stats.map((s, i) => (
             <Grid size={{ xs: 6, md: 3 }} key={i}>

@@ -16,7 +16,6 @@ import {
   AdminPanelSettingsOutlined,
   QrCode2Outlined,
   DownloadOutlined,
-  BadgeOutlined,
   VerifiedUserOutlined
 } from "@mui/icons-material";
 import jsPDF from "jspdf"; 

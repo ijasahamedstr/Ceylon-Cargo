@@ -2,12 +2,10 @@ import { useState } from "react";
 import {
   Box, Typography, Stack, Paper, Button, TextField, MenuItem,
   InputLabel, CircularProgress, Snackbar, Alert,
-  FormControl, Select, Grid, InputAdornment
+  FormControl, Select, Grid,
 } from "@mui/material";
 import {
-  PersonOutline, PhoneOutlined, BusinessOutlined,
-  SaveOutlined, ClearAllOutlined, CheckCircleOutline,
-  BadgeOutlined
+  PersonOutline, PhoneOutlined, BusinessOutlined, ClearAllOutlined, CheckCircleOutline,
 } from "@mui/icons-material";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8001";

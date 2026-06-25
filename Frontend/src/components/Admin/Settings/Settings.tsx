@@ -14,12 +14,11 @@ import {
   ShieldMoonOutlined, SecurityUpdateGood, 
   NavigateNext, HistoryToggleOffOutlined, GridViewOutlined, ViewListOutlined, 
   CheckCircleOutline, CloseOutlined, SupervisorAccountOutlined,
-  WarningAmberRounded, VisibilityOutlined
+  WarningAmberRounded
 } from "@mui/icons-material";
 
 // --- CONFIGURATION & CONSTANTS ---
 const PRIMARY_TEAL = "#004652";
-const ACCENT_GOLD = "#CC9D2F";
 const DANGER_RED = "#E11D48";
 const PRIMARY_FONT = "'Montserrat', sans-serif";
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8001";

@@ -17,7 +17,6 @@ import {
 const API = import.meta.env.VITE_API_URL || "http://localhost:8001";
 const CACHE = "AIR_MANIFEST_VAULT";
 const TEAL  = "#004652";
-const GOLD  = "#CC9D2F";
 const FONT  = "'Montserrat', sans-serif";
 const BORDER = "#E2E8F0";
 

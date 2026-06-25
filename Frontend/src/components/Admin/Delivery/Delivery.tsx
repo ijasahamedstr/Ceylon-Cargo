@@ -6,7 +6,7 @@ import {
   Pagination, Tooltip, Checkbox, Chip, Snackbar, Alert,
   Breadcrumbs, ThemeProvider, createTheme, Dialog,
   Select, MenuItem, FormControl, InputLabel, useMediaQuery,
-  Card, CardContent, Divider
+  Card, Divider
 } from "@mui/material";
 import {
   SearchOutlined, NavigateNext, VisibilityOutlined, 
