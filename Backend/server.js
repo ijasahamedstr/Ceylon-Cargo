@@ -16,7 +16,7 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // 3. CORS setup
 app.use(cors({
-  origin: ["http://localhost:5173"],
+  origin: ["https://ceyloncargo.vercel.app"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
