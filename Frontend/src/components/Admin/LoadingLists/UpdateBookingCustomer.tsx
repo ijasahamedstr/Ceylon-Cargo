@@ -221,8 +221,6 @@ export default function UpdateBookingCustomer({ booking, onBack, onSuccess }: Up
     parsePackageDescription(booking?.package_description || "")
   );
 
-  const [lookupQuery, setLookupQuery] = useState("");
-  const [lookupLoading, setLookupLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [snack, setSnack] = useState({ open: false, msg: "", sev: "success" as "success" | "error" });
 
@@ -239,40 +237,6 @@ export default function UpdateBookingCustomer({ booking, onBack, onSuccess }: Up
       return { ...p, ...updates };
     });
   }, [form.cargo_type]);
-
-  const handleLookup = async () => {
-    if (!lookupQuery.trim()) return;
-    setLookupLoading(true);
-    try {
-      const r = await fetch(`${API}/api/bookings/search?q=${encodeURIComponent(lookupQuery.trim())}`);
-      const j = await r.json();
-      if (j.data) {
-        const b = j.data;
-        setForm((prev) => ({
-          ...prev, 
-          sender_name: b.sender_name || prev.sender_name,
-          sender_mobile: b.sender_mobile || prev.sender_mobile,
-          sender_email: b.sender_email || prev.sender_email,
-          sender_iqama: b.sender_iqama || prev.sender_iqama,
-          sender_passport: b.sender_passport || prev.sender_passport,
-          pickup_city: b.pickup_city || prev.pickup_city,
-          pickup_address: b.pickup_address || prev.pickup_address,
-          receiver_name: b.receiver_name || prev.receiver_name,
-          receiver_mobile: b.receiver_mobile || prev.receiver_mobile,
-          receiver_email: b.receiver_email || prev.receiver_email,
-          delivery_city: b.delivery_city || prev.delivery_city,
-          receiver_address: b.receiver_address || prev.receiver_address,
-        }));
-        notify(`Found customer data`, "success");
-      } else {
-        notify("No matching customer found", "error");
-      }
-    } catch {
-      notify("Lookup failed", "error");
-    } finally {
-      setLookupLoading(false);
-    }
-  };
 
   const addPackageItem = () => setPackageItems((prev) => [...prev, { name: "", unit: "" }]);
   
