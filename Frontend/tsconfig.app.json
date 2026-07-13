@@ -1,10 +1,8 @@
 {
   "compilerOptions": {
-    /* Path Aliases & Warning Fixes */
-    "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
+    /* Path Aliases (No baseUrl required) */
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
 
     /* Core Options */
@@ -26,7 +24,7 @@
 
     /* Linting */
     "strict": true,
-    "noImplicitAny": false, /* Added to bypass the TS7006 'any' errors during build */
+    "noImplicitAny": false, 
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
