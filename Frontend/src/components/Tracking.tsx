@@ -64,7 +64,6 @@ const StepNode = styled(motion.div)<{ active?: boolean; completed?: boolean }>((
   justifyContent: 'center',
   position: 'relative',
   zIndex: 3,
-  cursor: 'pointer',
   background: completed 
     ? BrandColors.success 
     : active 
@@ -80,18 +79,8 @@ const StepNode = styled(motion.div)<{ active?: boolean; completed?: boolean }>((
   transition: 'all 0.3s ease',
 }));
 
-// --- CUSTOMER SHIPMENT STATUS STEPS ---
-const workflowSteps = [
-  { id: 1, title: "Order Placed", icon: ReceiptLongIcon, desc: "Shipment Created", details: "We have received your shipment request and tracking details have been securely generated." },
-  { id: 2, title: "Processing", icon: InventoryIcon, desc: "At Sorting Facility", details: "Your cargo is being processed, weighed, and securely packed at our regional center." },
-  { id: 3, title: "In Transit", icon: FlightTakeoffIcon, desc: "On the Move", details: "Your shipment is currently in transit to the destination country." },
-  { id: 4, title: "Arrived Destination", icon: LocalShippingIcon, desc: "Destination Hub", details: "Your cargo has reached the local delivery hub and is ready for customs clearance." },
-  { id: 5, title: "Out for Delivery", icon: LocalShippingIcon, desc: "Final Mile Dispatch", details: "A local courier is delivering your cargo today." },
-  { id: 6, title: "Delivered", icon: HomeIcon, desc: "Successfully Delivered", details: "Your shipment has been successfully delivered and signed for at the destination address." },
-];
-
-
-type GroupStatusKey =
+// --- DATABASE STATUS TIMELINE (Unified Source of Truth) ---
+export type GroupStatusKey =
   | "collect_item"
   | "move_to_warehouse_sa"
   | "loading_box"
@@ -100,16 +89,25 @@ type GroupStatusKey =
   | "ready_for_delivery"
   | "delivered";
 
-const statusMap: Record<GroupStatusKey, { step: number; label: string; color: string }> = {
-  collect_item: { step: 1, label: "Order Placed", color: "#3B82F6" },
-  move_to_warehouse_sa: { step: 2, label: "Processing", color: "#0EA5E9" },
-  loading_box: { step: 2, label: "Processing (Loading)", color: "#0EA5E9" },
-  shipment_manifest: { step: 3, label: "In Transit", color: "#6366F1" },
-  arrived_warehouse_sl: { step: 4, label: "Arrived at Destination", color: "#F59E0B" },
-  ready_for_delivery: { step: 5, label: "Out for Delivery", color: "#10B981" },
-  delivered: { step: 6, label: "Delivered", color: "#16A34A" },
+export const dbStatusTimeline = [
+  { id: 1, dbKeys: ["collect_item"], label: "Order Placed", color: "#3B82F6", icon: ReceiptLongIcon, desc: "Shipment Created", details: "We have received your shipment request and tracking details have been generated." },
+  { id: 2, dbKeys: ["move_to_warehouse_sa", "loading_box"], label: "Processing", color: "#0EA5E9", icon: InventoryIcon, desc: "At Sorting Facility", details: "Your cargo is being processed, weighed, and securely packed." },
+  { id: 3, dbKeys: ["shipment_manifest"], label: "In Transit", color: "#6366F1", icon: FlightTakeoffIcon, desc: "On the Move", details: "Your shipment is currently in transit to the destination country." },
+  { id: 4, dbKeys: ["arrived_warehouse_sl"], label: "Arrived at Destination", color: "#F59E0B", icon: LocalShippingIcon, desc: "Destination Hub", details: "Your cargo has reached the local delivery hub and is ready for clearance." },
+  { id: 5, dbKeys: ["ready_for_delivery"], label: "Out for Delivery", color: "#10B981", icon: LocalShippingIcon, desc: "Final Mile Dispatch", details: "A local courier is delivering your cargo today." },
+  { id: 6, dbKeys: ["delivered"], label: "Delivered", color: "#16A34A", icon: HomeIcon, desc: "Successfully Delivered", details: "Your shipment has been successfully delivered and signed for." },
+];
+
+export const getStatusInfo = (dbStatus: string | undefined | null) => {
+  const fallback = dbStatusTimeline[0];
+  if (!dbStatus) return fallback;
+  
+  const foundStep = dbStatusTimeline.find(step => step.dbKeys.includes(dbStatus as GroupStatusKey));
+  
+  return foundStep || { ...fallback, label: dbStatus, color: BrandColors.neutral };
 };
 
+// --- MAIN COMPONENT ---
 export default function CustomerTracking() {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -122,6 +120,8 @@ export default function CustomerTracking() {
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  
+  // Universal font style applied to all text components
   const montserratStyle = { fontFamily: "'Montserrat', sans-serif" };
 
   const performSearch = async (inputCode: string) => {
@@ -134,6 +134,8 @@ export default function CustomerTracking() {
 
     try {
       const normalizedInput = inputCode.trim();
+      
+      // 1. Check Group Code First
       const groupRes = await fetch(
         `${API}/api/move-groups/code/${encodeURIComponent(normalizedInput.toUpperCase())}?t=${Date.now()}`,
         { cache: "no-store" }
@@ -143,13 +145,15 @@ export default function CustomerTracking() {
       if (groupRes.ok) {
         const group = groupJson.data;
         setGroupData(group);
-        const status = (group.booking_ids?.[0]?.status as GroupStatusKey) || (group.to_status as GroupStatusKey) || "collect_item";
-        const step = statusMap[status]?.step || 1;
-        setActiveStep(step);
+        const rawStatus = group.booking_ids?.[0]?.status || group.to_status || "collect_item";
+        const stepInfo = getStatusInfo(rawStatus);
+        
+        setActiveStep(stepInfo.id);
         setShowResults(true);
         return;
       }
 
+      // 2. Fallback to Booking Check
       const bookingRes = await fetch(
         `${API}/api/bookings/tracking/${encodeURIComponent(normalizedInput)}?t=${Date.now()}`,
         { cache: "no-store" }
@@ -172,12 +176,12 @@ export default function CustomerTracking() {
         notes: "Single booking lookup",
         booking_ids: [booking],
       });
-      const status = (booking.status as GroupStatusKey) || "collect_item";
-      const step = statusMap[status]?.step || 1;
-      setActiveStep(step);
+      
+      const stepInfo = getStatusInfo(booking.status);
+      setActiveStep(stepInfo.id);
       setShowResults(true);
     } catch (err) {
-      setErrorMessage("Unable to fetch group details. Please try again later.");
+      setErrorMessage("Unable to fetch tracking details. Please try again later.");
     } finally {
       setIsSearching(false);
     }
@@ -197,9 +201,10 @@ export default function CustomerTracking() {
     }
   }, []);
 
-  const progressValue = ((activeStep - 1) / (workflowSteps.length - 1)) * 100;
-  const currentStatus = (groupData?.booking_ids?.[0]?.status as GroupStatusKey) || (groupData?.to_status as GroupStatusKey) || "collect_item";
-  const statusInfo = statusMap[currentStatus] || statusMap.collect_item;
+  const progressValue = ((activeStep - 1) / (dbStatusTimeline.length - 1)) * 100;
+  
+  const currentRawStatus = groupData?.booking_ids?.[0]?.status || groupData?.to_status || "collect_item";
+  const statusInfo = getStatusInfo(currentRawStatus);
   const displayedBookings = useMemo(() => groupData?.booking_ids || [], [groupData]);
 
   return (
@@ -209,7 +214,8 @@ export default function CustomerTracking() {
       background: `linear-gradient(180deg, ${BrandColors.bgLight} 0%, #EDF2F7 100%)`, 
       pt: 6, 
       pb: 8,
-      ...montserratStyle
+      ...montserratStyle,
+      '& *': { fontFamily: "'Montserrat', sans-serif !important" } // Fallback enforcement
     }}>
       <Container maxWidth="md">
         
@@ -257,7 +263,7 @@ export default function CustomerTracking() {
             sx={{
               '& .MuiOutlinedInput-root': {
                 '& fieldset': { border: 'none' },
-                fontFamily: "'Montserrat', sans-serif",
+                ...montserratStyle,
                 fontWeight: 600,
                 color: '#1A202C'
               }
@@ -279,7 +285,7 @@ export default function CustomerTracking() {
               px: 4,
               py: 1.5,
               minWidth: isMobile ? '100%' : '140px',
-              fontFamily: "'Montserrat', sans-serif",
+              ...montserratStyle,
               fontWeight: 700,
               textTransform: 'none',
               background: `linear-gradient(135deg, ${BrandColors.primary} 0%, ${BrandColors.secondary} 100%)`,
@@ -294,16 +300,16 @@ export default function CustomerTracking() {
         </Paper>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mb: 4 }}>
-          <Button variant="outlined" onClick={() => setHowOpen(true)} sx={{ textTransform: 'none', borderRadius: '14px', px: 3 }}>
+          <Button variant="outlined" onClick={() => setHowOpen(true)} sx={{ ...montserratStyle, textTransform: 'none', borderRadius: '14px', px: 3 }}>
             How it works
           </Button>
-          <Button variant="outlined" onClick={() => setProcessOpen(true)} sx={{ textTransform: 'none', borderRadius: '14px', px: 3 }}>
+          <Button variant="outlined" onClick={() => setProcessOpen(true)} sx={{ ...montserratStyle, textTransform: 'none', borderRadius: '14px', px: 3 }}>
             Our Shipping Process
           </Button>
         </Stack>
 
         {errorMessage && (
-          <Alert severity="error" sx={{ mb: 4, borderRadius: '18px', fontFamily: "'Montserrat', sans-serif" }}>
+          <Alert severity="error" sx={{ mb: 4, borderRadius: '18px', ...montserratStyle }}>
             {errorMessage}
           </Alert>
         )}
@@ -314,7 +320,7 @@ export default function CustomerTracking() {
               <Box>
                 <Typography sx={{ ...montserratStyle, fontWeight: 800, fontSize: '1.1rem', color: BrandColors.primary }}>Group ID</Typography>
                 <Typography sx={{ ...montserratStyle, fontWeight: 700, color: '#111827', mt: 0.5 }}>{groupData.group_code}</Typography>
-                <Chip label={`Packages: ${groupData.package_count}`} color="primary" variant="outlined" sx={{ mt: 2, fontWeight: 700, borderRadius: '14px' }} />
+                <Chip label={`Packages: ${groupData.package_count}`} color="primary" variant="outlined" sx={{ ...montserratStyle, mt: 2, fontWeight: 700, borderRadius: '14px' }} />
               </Box>
 
               <Box>
@@ -326,29 +332,25 @@ export default function CustomerTracking() {
               <Box>
                 <Typography sx={{ ...montserratStyle, fontWeight: 800, fontSize: '1.1rem', color: BrandColors.primary }}>Route</Typography>
                 <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                  {/* Render human-friendly labels when available, fall back to raw values */}
                   {(() => {
                     const isSingle = groupData.notes === "Single booking lookup";
                     const firstBooking = groupData.booking_ids?.[0];
+                    
                     const fromLabel = isSingle 
                       ? (firstBooking?.pickup_city || "Origin")
-                      : (() => {
-                          const fromKey = groupData.from_status || (firstBooking?.status) || groupData.from_label || groupData.from_status;
-                          return (statusMap as any)[fromKey]?.label || groupData.from_label || String(fromKey || "");
-                        })();
+                      : (getStatusInfo(groupData.from_status || firstBooking?.status || groupData.from_label).label || groupData.from_label || "Origin");
+                      
                     const toLabel = isSingle 
                       ? (firstBooking?.delivery_city || "Destination")
-                      : (() => {
-                          const toKey = groupData.to_status || (firstBooking?.status) || groupData.to_label || groupData.to_status;
-                          return (statusMap as any)[toKey]?.label || groupData.to_label || String(toKey || "");
-                        })();
+                      : (getStatusInfo(groupData.to_status || firstBooking?.status || groupData.to_label).label || groupData.to_label || "Destination");
+
                     return (
                       <>
-                        <Chip label={fromLabel} sx={{ borderRadius: '14px', fontWeight: 700, bgcolor: '#F3F4F6' }} />
+                        <Chip label={fromLabel} sx={{ ...montserratStyle, borderRadius: '14px', fontWeight: 700, bgcolor: '#F3F4F6' }} />
                         <Box sx={{ mx: 0.5, color: '#9CA3AF', display: 'flex', alignItems: 'center' }}>
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 17L13 11L7 5" stroke="#9CA3AF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                         </Box>
-                        <Chip label={toLabel} color="secondary" sx={{ borderRadius: '14px', fontWeight: 700 }} />
+                        <Chip label={toLabel} color="secondary" sx={{ ...montserratStyle, borderRadius: '14px', fontWeight: 700 }} />
                       </>
                     );
                   })()}
@@ -361,25 +363,28 @@ export default function CustomerTracking() {
               <Table size="small">
                 <TableHead sx={{ bgcolor: '#F8FAFC' }}>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Tracking</TableCell>
-                    <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Description</TableCell>
-                    <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Cargo Type</TableCell>
-                    <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Package Type</TableCell>
-                    <TableCell sx={{ fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Status</TableCell>
+                    <TableCell sx={{ ...montserratStyle, fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Tracking</TableCell>
+                    <TableCell sx={{ ...montserratStyle, fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Description</TableCell>
+                    <TableCell sx={{ ...montserratStyle, fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Cargo Type</TableCell>
+                    <TableCell sx={{ ...montserratStyle, fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Package Type</TableCell>
+                    <TableCell sx={{ ...montserratStyle, fontWeight: 800, color: '#475569', fontSize: '0.72rem' }}>Status</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {displayedBookings.map((booking: any) => (
-                    <TableRow key={booking._id} hover>
-                      <TableCell sx={{ fontWeight: 700 }}>{booking.tracking_number}</TableCell>
-                      <TableCell>{booking.package_description || 'N/A'}</TableCell>
-                      <TableCell>{booking.cargo_type || 'N/A'}</TableCell>
-                      <TableCell>{booking.packaging_type || 'N/A'}</TableCell>
-                      <TableCell sx={{ fontWeight: 700, color: statusMap[booking.status as GroupStatusKey]?.color || '#0F766E' }}>
-                        {statusMap[booking.status as GroupStatusKey]?.label || booking.status}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {displayedBookings.map((booking: any) => {
+                    const rowStatus = getStatusInfo(booking.status);
+                    return (
+                      <TableRow key={booking._id} hover>
+                        <TableCell sx={{ ...montserratStyle, fontWeight: 700 }}>{booking.tracking_number}</TableCell>
+                        <TableCell sx={{ ...montserratStyle }}>{booking.package_description || 'N/A'}</TableCell>
+                        <TableCell sx={{ ...montserratStyle }}>{booking.cargo_type || 'N/A'}</TableCell>
+                        <TableCell sx={{ ...montserratStyle }}>{booking.packaging_type || 'N/A'}</TableCell>
+                        <TableCell sx={{ ...montserratStyle, fontWeight: 700, color: rowStatus.color }}>
+                          {rowStatus.label}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -438,7 +443,8 @@ export default function CustomerTracking() {
                   />
                 </Box>
 
-                {workflowSteps.map((step) => {
+                {/* Dynamically Render UI based on dbStatusTimeline */}
+                {dbStatusTimeline.map((step) => {
                   const Icon = step.icon;
                   const isActive = step.id === activeStep;
                   const isCompleted = step.id < activeStep;
@@ -455,8 +461,6 @@ export default function CustomerTracking() {
                       <StepNode 
                         active={isActive} 
                         completed={isCompleted}
-                        whileHover={{ scale: 1.1 }}
-                        onClick={() => setActiveStep(step.id)}
                       >
                         <AnimatePresence mode="wait">
                           {isCompleted ? (
@@ -481,7 +485,7 @@ export default function CustomerTracking() {
                         letterSpacing: 1,
                         textAlign: isMobile ? 'left' : 'center'
                       }}>
-                        {step.title}
+                        {step.label}
                       </Typography>
                     </Box>
                   );
@@ -516,12 +520,12 @@ export default function CustomerTracking() {
                       <Typography variant="h6" sx={{ 
                         ...montserratStyle, fontWeight: 800, color: BrandColors.primary, mb: 1, fontSize: '1rem' 
                       }}>
-                        {workflowSteps[activeStep - 1].desc}
+                        {dbStatusTimeline[activeStep - 1]?.desc || "Status Info Unavailable"}
                       </Typography>
                       <Typography variant="body2" sx={{ 
                         ...montserratStyle, color: '#4A5568', lineHeight: 1.7, fontWeight: 500, fontSize: '0.85rem' 
                       }}>
-                        {workflowSteps[activeStep - 1].details}
+                        {dbStatusTimeline[activeStep - 1]?.details || "Details for this stage are currently unavailable."}
                       </Typography>
                     </Paper>
                   </motion.div>
@@ -534,44 +538,44 @@ export default function CustomerTracking() {
 
       {/* How it works dialog */}
       <Dialog open={howOpen} onClose={() => setHowOpen(false)} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ fontFamily: montserratStyle.fontFamily, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', borderRadius: '16px 16px 0 0' }}>
+        <DialogTitle sx={{ ...montserratStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', borderRadius: '16px 16px 0 0' }}>
           How it works
           <IconButton size="small" onClick={() => setHowOpen(false)} sx={{ color: '#374151' }}><CloseOutlined /></IconButton>
         </DialogTitle>
         <DialogContent dividers sx={{ bgcolor: '#ffffff', borderBottom: '1px solid #E2E8F0', borderRadius: '0 0 16px 16px' }}>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, mb: 1.5, fontWeight: 700, color: '#111827' }}>End-to-end shipment tracking and secure access</Typography>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, color: '#475569', lineHeight: 1.8 }}>
-            Ceylon Cargo provides secure booking, warehousing, and delivery tracking. Customers can create bookings, view status updates, and track shipments in real time using the booking or move group IDs.
+          <Typography sx={{ ...montserratStyle, mb: 1.5, fontWeight: 700, color: '#111827' }}>End-to-end shipment tracking and secure access</Typography>
+          <Typography sx={{ ...montserratStyle, color: '#475569', lineHeight: 1.8 }}>
+            Our cargo service provides secure booking, warehousing, and delivery tracking. Customers can create bookings, view status updates, and track shipments in real time using the booking or move group IDs.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ bgcolor: '#F7F9FC', borderTop: '1px solid rgba(145, 158, 171, 0.12)' }}>
-          <Button onClick={() => setHowOpen(false)} color="primary" sx={{ textTransform: 'none', fontWeight: 700 }}>Close</Button>
+          <Button onClick={() => setHowOpen(false)} color="primary" sx={{ ...montserratStyle, textTransform: 'none', fontWeight: 700 }}>Close</Button>
         </DialogActions>
       </Dialog>
 
       {/* Shipping process dialog */}
       <Dialog open={processOpen} onClose={() => setProcessOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle sx={{ fontFamily: montserratStyle.fontFamily, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', borderRadius: '16px 16px 0 0' }}>
+        <DialogTitle sx={{ ...montserratStyle, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#F8FAFC', borderBottom: '1px solid #E2E8F0', borderRadius: '16px 16px 0 0' }}>
           Our Shipping Process
           <IconButton size="small" onClick={() => setProcessOpen(false)} sx={{ color: '#374151' }}><CloseOutlined /></IconButton>
         </DialogTitle>
         <DialogContent dividers sx={{ bgcolor: '#ffffff', borderBottom: '1px solid #E2E8F0', borderRadius: '0 0 16px 16px' }}>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, mb: 1.5, fontWeight: 700, color: '#111827' }}>Overview</Typography>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, color: '#475569', mb: 1.5, lineHeight: 1.8 }}>
+          <Typography sx={{ ...montserratStyle, mb: 1.5, fontWeight: 700, color: '#111827' }}>Overview</Typography>
+          <Typography sx={{ ...montserratStyle, color: '#475569', mb: 1.5, lineHeight: 1.8 }}>
             1) Booking & confirmation — create a booking with required details.
           </Typography>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, color: '#475569', mb: 1.5, lineHeight: 1.8 }}>
+          <Typography sx={{ ...montserratStyle, color: '#475569', mb: 1.5, lineHeight: 1.8 }}>
             2) Warehouse intake — packages are received, inspected, and assigned to move groups.
           </Typography>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, color: '#475569', mb: 1.5, lineHeight: 1.8 }}>
+          <Typography sx={{ ...montserratStyle, color: '#475569', mb: 1.5, lineHeight: 1.8 }}>
             3) Transport & tracking — packages move according to the route and are updated in the tracking system.
           </Typography>
-          <Typography sx={{ fontFamily: montserratStyle.fontFamily, color: '#475569', lineHeight: 1.8 }}>
+          <Typography sx={{ ...montserratStyle, color: '#475569', lineHeight: 1.8 }}>
             4) Delivery & confirmation — final delivery is completed and proof-of-delivery is recorded.
           </Typography>
         </DialogContent>
         <DialogActions sx={{ bgcolor: '#F7F9FC', borderTop: '1px solid rgba(145, 158, 171, 0.12)' }}>
-          <Button onClick={() => setProcessOpen(false)} color="primary" sx={{ textTransform: 'none', fontWeight: 700 }}>Close</Button>
+          <Button onClick={() => setProcessOpen(false)} color="primary" sx={{ ...montserratStyle, textTransform: 'none', fontWeight: 700 }}>Close</Button>
         </DialogActions>
       </Dialog>
     </Box>
