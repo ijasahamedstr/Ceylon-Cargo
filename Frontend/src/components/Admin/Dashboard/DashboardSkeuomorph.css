@@ -1,0 +1,57 @@
+/* DashboardSkeuomorph.css */
+/* Skeuomorphic styling for the admin dashboard */
+
+/* Root container – subtle off‑white background with gentle texture */
+.skeuo-root {
+  display: flex;
+  min-height: 100vh;
+  background: #F4F7F9;
+  /* optional faint grain texture for realism */
+  background-image: url('/assets/linen_texture.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* Top app bar – glass‑like with a faint blur */
+.skeuobar {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid #E2E8F0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+/* Drawer – paper‑like surface with a subtle linen texture */
+.skeuodrawer {
+  background: #fff;
+  background-image: url('/assets/linen_texture.png');
+  background-size: contain;
+  background-repeat: repeat;
+  background-position: top left;
+  border-right: 1px solid #E2E8F0;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.03);
+}
+
+/* Card containers – raised with soft shadows and a crisp edge */
+.skeuocard {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+/* Add a subtle inner‑glow to active navigation items (optional) */
+.skeuo-root .Mui-selected {
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0));
+}
+
+/* Ensure scrollbars blend with the theme */
+.skeuo-root ::-webkit-scrollbar {
+  width: 6px;
+}
+.skeuo-root ::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.1);
+  border-radius: 3px;
+}

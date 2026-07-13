@@ -1,0 +1,305 @@
+/* ═══════════════════════════════════════════════════════════
+   DashboardNeumorphism.css  —  Modern Flat Design System
+   Base: #F8FAFC  |  Borders: #E2E8F0  |  Cards: #FFFFFF
+   Redesigned to replace all neomorphic components with flat modern UI.
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
+
+/* ── Variables ── */
+:root {
+  --neu-bg:        #F8FAFC;
+  --neu-dark:      #E2E8F0;
+  --neu-light:     #FFFFFF;
+  --neu-teal:      #004652;
+  --neu-gold:      #CC9D2F;
+  --neu-text:      #2D3748;
+  --neu-muted:     #64748B;
+  --neu-raised:    0 4px 12px rgba(0, 0, 0, 0.05);
+  --neu-raised-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --neu-inset:     none;
+  --neu-inset-sm:  none;
+}
+
+/* ── Root shell ── */
+.skeuo-root {
+  display: flex;
+  min-height: 100vh;
+  background: var(--neu-bg) !important;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* ── Top AppBar ── */
+.skeuobar {
+  background: #FFFFFF !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  border-bottom: 1px solid var(--neu-dark) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+/* ── Sidebar Drawer ── */
+.skeuodrawer .MuiDrawer-paper {
+  background: #FFFFFF !important;
+  border-right: 1px solid var(--neu-dark) !important;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.02) !important;
+}
+
+/* ── Content Card (main card area) ── */
+.skeuocard {
+  background: #FFFFFF !important;
+  border: 1px solid var(--neu-dark) !important;
+  border-radius: 24px !important;
+  box-shadow: var(--neu-raised) !important;
+  transition: all 0.3s ease !important;
+}
+
+/* ── Icon buttons in toolbar ── */
+.skeuo-root .MuiIconButton-root {
+  background: #FFFFFF !important;
+  border: 1px solid var(--neu-dark) !important;
+  box-shadow: var(--neu-raised-sm) !important;
+  transition: all 0.15s ease !important;
+}
+.skeuo-root .MuiIconButton-root:hover {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06) !important;
+  transform: translateY(-1px);
+}
+.skeuo-root .MuiIconButton-root:active {
+  background: #F1F5F9 !important;
+  transform: translateY(0);
+}
+
+/* ── Scrollbar ── */
+.skeuo-root ::-webkit-scrollbar { width: 6px; }
+.skeuo-root ::-webkit-scrollbar-track { background: transparent; }
+.skeuo-root ::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 3px;
+}
+.skeuo-root ::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* ── Bottom drawer (mobile) ── */
+.skeuo-root .MuiDrawer-paper[class*="bottom"] {
+  background: #FFFFFF !important;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08) !important;
+  border-top: 1px solid var(--neu-dark) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SHARED UTILITY CLASSES — reusable across ALL admin components
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Raised Card ── */
+.neu-card {
+  background: #FFFFFF !important;
+  border: 1px solid var(--neu-dark) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--neu-raised) !important;
+  transition: all 0.2s ease !important;
+}
+.neu-card-hover:hover {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-2px);
+}
+
+/* ── Inset Pressed Card ── */
+.neu-card-inset {
+  background: #F8FAFC !important;
+  border: 1px solid var(--neu-dark) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+/* ── Stat Card ── */
+.neu-stat-card {
+  background: #FFFFFF !important;
+  border: 1px solid var(--neu-dark) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--neu-raised) !important;
+  transition: all 0.2s ease !important;
+  position: relative;
+  overflow: hidden;
+}
+.neu-stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--neu-teal), var(--neu-gold));
+  border-radius: 18px 18px 0 0;
+}
+.neu-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07) !important;
+}
+
+/* ── Small raised card ── */
+.neu-card-sm {
+  background: #FFFFFF !important;
+  border: 1px solid var(--neu-dark) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--neu-raised-sm) !important;
+  transition: all 0.15s ease !important;
+  cursor: pointer;
+}
+.neu-card-sm:hover {
+  background: #F8FAFC !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06) !important;
+  transform: translateY(-2px);
+}
+.neu-card-sm:active {
+  background: #F1F5F9 !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Inset small card (active state) ── */
+.neu-card-sm-active {
+  background: rgba(0, 70, 82, 0.06) !important;
+  border: 1px solid rgba(0, 70, 82, 0.15) !important;
+  border-radius: 14px !important;
+  box-shadow: none !important;
+}
+
+/* ── Primary Button ── */
+.neu-btn {
+  background: rgba(0, 70, 82, 0.05) !important;
+  color: var(--neu-teal) !important;
+  border: 1px solid rgba(0, 70, 82, 0.12) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  transition: all 0.15s ease !important;
+}
+.neu-btn:hover {
+  background: rgba(0, 70, 82, 0.1) !important;
+  border-color: rgba(0, 70, 82, 0.2) !important;
+  transform: translateY(-1px);
+}
+.neu-btn:active {
+  background: rgba(0, 70, 82, 0.15) !important;
+  transform: translateY(0) !important;
+}
+
+/* ── Ghost Button ── */
+.neu-btn-ghost {
+  background: transparent !important;
+  color: var(--neu-muted) !important;
+  border: 1px solid var(--neu-dark) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  transition: all 0.15s ease !important;
+}
+.neu-btn-ghost:hover {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: var(--neu-text) !important;
+}
+.neu-btn-ghost:active {
+  background: #F1F5F9 !important;
+}
+
+/* ── Inset Input ── */
+.neu-input .MuiOutlinedInput-root {
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 600 !important;
+  color: var(--neu-text) !important;
+  transition: all 0.2s ease !important;
+}
+.neu-input .MuiOutlinedInput-root:hover {
+  border-color: #CBD5E1 !important;
+}
+.neu-input .MuiOutlinedInput-root.Mui-focused {
+  border-color: var(--neu-teal) !important;
+  box-shadow: 0 0 0 3px rgba(0, 70, 82, 0.12) !important;
+}
+.neu-input .MuiOutlinedInput-notchedOutline {
+  border: 1px solid var(--neu-dark) !important;
+}
+.neu-input .MuiInputLabel-root {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 600 !important;
+  color: var(--neu-muted) !important;
+}
+.neu-input .MuiInputLabel-root.Mui-focused {
+  color: var(--neu-teal) !important;
+}
+
+/* ── Neumorphic Table Container ── */
+.neu-table-container {
+  background: #FFFFFF !important;
+  border-radius: 18px !important;
+  border: 1px solid var(--neu-dark) !important;
+  box-shadow: none !important;
+  overflow: hidden;
+}
+.neu-table-container .MuiTableHead-root .MuiTableCell-root {
+  background: #F8FAFC !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 800 !important;
+  font-size: 0.7rem !important;
+  color: var(--neu-muted) !important;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--neu-dark) !important;
+}
+.neu-table-container .MuiTableBody-root .MuiTableRow-root:nth-of-type(even) {
+  background: #F8FAFC !important;
+}
+.neu-table-container .MuiTableBody-root .MuiTableRow-root:hover {
+  background: rgba(0, 70, 82, 0.03) !important;
+}
+.neu-table-container .MuiTableCell-root {
+  font-family: 'Montserrat', sans-serif !important;
+  border-bottom: 1px solid var(--neu-dark) !important;
+}
+
+/* ── Neumorphic Table Chip ── */
+.neu-chip {
+  background: #F1F5F9 !important;
+  border: 1px solid var(--neu-dark) !important;
+  box-shadow: none !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* ── Camera / Scan preview frame ── */
+.neu-scan-frame {
+  background: #0F172A !important;
+  border-radius: 20px !important;
+  box-shadow: none !important;
+  border: 1px solid var(--neu-dark) !important;
+  overflow: hidden;
+}
+
+/* ── Alert ── */
+.skeuo-root .MuiAlert-root {
+  border-radius: 14px !important;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+  border: 1px solid var(--neu-dark) !important;
+}
+
+/* ── Progress bar ── */
+.neu-progress .MuiLinearProgress-root {
+  height: 8px !important;
+  border-radius: 8px !important;
+  background: #F1F5F9 !important;
+  box-shadow: none !important;
+  border: 1px solid var(--neu-dark) !important;
+}
+.neu-progress .MuiLinearProgress-bar {
+  border-radius: 8px !important;
+}
