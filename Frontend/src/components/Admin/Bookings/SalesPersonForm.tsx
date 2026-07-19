@@ -60,11 +60,18 @@ const LK_CITIES = [
 ];
 
 const BRANCHES = ["Jeddah Office", "Riyadh Office", "Dammam Office"];
-const SALES_PERSONS = ["Ahmed Al-Rashid", "Mohammed Hassan", "Fatima Ali", "System Administrator"];
 
 interface PackageItem {
   name: string;
   unit: string;
+}
+
+// Added interface for fetching from MongoDB
+interface SalesPerson {
+  _id: string;
+  name: string;
+  branch: string;
+  role: string;
 }
 
 interface FormState {
@@ -286,12 +293,32 @@ export default function SalesPersonForm() {
   const [lookupLoading, setLookupLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [snack, setSnack] = useState({ open: false, msg: "", sev: "success" as "success" | "error" });
+  
+  // New state for fetching DB sales persons
+  const [salesPersonsList, setSalesPersonsList] = useState<SalesPerson[]>([]);
 
   const notify = (msg: string, sev: "success" | "error") => setSnack({ open: true, msg, sev });
   const set = (key: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((p) => ({ ...p, [key]: e.target.value }));
 
   useEffect(() => {
+    // 1. Fetch Sales Persons from DB
+    const fetchSalesPersons = async () => {
+      try {
+        const res = await apiFetch("/api/sales-persons");
+        const json = await res.json();
+        if (json.data) {
+          setSalesPersonsList(json.data);
+        } else if (Array.isArray(json)) {
+          setSalesPersonsList(json);
+        }
+      } catch (error) {
+        console.error("Failed to fetch sales persons from DB", error);
+      }
+    };
+    fetchSalesPersons();
+
+    // 2. Restore Drafts & Admin defaults
     const saved = localStorage.getItem("bookingDraft");
     if (saved) {
       try {
@@ -449,9 +476,6 @@ export default function SalesPersonForm() {
       if (r.ok) {
         notify(`Booking created — ${j.data.tracking_number}`, "success");
         localStorage.removeItem("bookingDraft");
-
-
-
         clearForm(true);
       } else {
         notify(j.message || "Failed to create booking", "error");
@@ -590,7 +614,7 @@ export default function SalesPersonForm() {
                   MenuProps={{
                     PaperProps: {
                       style: {
-                        maxHeight: 300, // Limit dropdown height so it's easily scrollable
+                        maxHeight: 300,
                       },
                     },
                   }}
@@ -661,7 +685,7 @@ export default function SalesPersonForm() {
                   MenuProps={{
                     PaperProps: {
                       style: {
-                        maxHeight: 300, // Limit dropdown height so it's easily scrollable
+                        maxHeight: 300,
                       },
                     },
                   }}
@@ -1071,17 +1095,25 @@ export default function SalesPersonForm() {
               </FormControl>
             </Grid>
 
+            {/* UPDATED SALES PERSON DROPDOWN */}
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <InputLabel sx={labelSx}>
                 <AdminPanelSettingsOutlined sx={{ fontSize: "0.95rem", color: colors.primaryLight }} />
                 Sales Person (Optional)
               </InputLabel>
               <FormControl fullWidth size="small">
-                <Select value={form.sales_person_id} onChange={(e) => setForm((p) => ({ ...p, sales_person_id: e.target.value }))} displayEmpty sx={customSelectSx}>
+                <Select 
+                  value={form.sales_person_id} 
+                  onChange={(e) => setForm((p) => ({ ...p, sales_person_id: e.target.value }))} 
+                  displayEmpty 
+                  sx={customSelectSx}
+                >
                   <MenuItem value="" disabled><em>Select sales person</em></MenuItem>
-                  {SALES_PERSONS.map((s) => (
-                    <MenuItem key={s} value={s} sx={{ fontFamily: PRIMARY_FONT, fontSize: "0.85rem" }}>
-                      {s}
+                  
+                  {/* Iterate dynamically mapped list from MongoDB */}
+                  {salesPersonsList.map((s) => (
+                    <MenuItem key={s._id} value={s.name} sx={{ fontFamily: PRIMARY_FONT, fontSize: "0.85rem" }}>
+                      {s.name} {s.branch && `(${s.branch})`}
                     </MenuItem>
                   ))}
                 </Select>
